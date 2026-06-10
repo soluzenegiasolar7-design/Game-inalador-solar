@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SolarPro Installer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,800;1,400&family=Share+Tech+Mono&display=swap');
+
+/* ═══════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════ */
+:root {
+  --sky:     #071626;
+  --sky2:    #0C2340;
+  --sky3:    #0F2E56;
+  --solar:   #FFD440;
+  --solar2:  #FFAA00;
+  --orange:  #FF6B2B;
+  --green:   #2ECC8A;
+  --blue:    #4DB8FF;
+  --red:     #FF5555;
+  --panel-bg:#0A2448;
+  --panel-ln:#1B4070;
+  --wall:    #1E3A5F;
+  --roof:    #5C3020;
+  --text:    #D8EAF8;
+  --muted:   #5A80A8;
+  --card:    rgba(10,28,54,0.92);
+  --border:  rgba(77,184,255,0.18);
+  --r:       10px;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  font-family: 'Exo 2', sans-serif;
+  background: var(--sky);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button { font-family: inherit; cursor: pointer; border: none; }
+
+/* ═══════════════════════════════════════════════════
+   BACKGROUND
+═══════════════════════════════════════════════════ */
+#bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(170deg, #040E1C 0%, #071626 35%, #0C2340 70%, #0F2E56 100%);
+}
+.star {
+  position: fixed; border-radius: 50%; background: #fff;
+  animation: tw var(--d,3s) infinite alternate;
+}
+@keyframes tw { from{opacity:.05} to{opacity:var(--op,.6)} }
+
+#sun {
+  position: fixed; top: 18px; right: 22px;
+  width: 56px; height: 56px; z-index: 1; pointer-events: none;
+}
+.sun-core {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: radial-gradient(circle, #FFFDE0 0%, #FFD440 45%, #FF9800 100%);
+  box-shadow: 0 0 28px 7px #FFD44055, 0 0 56px 14px #FF980022;
+  transition: box-shadow .7s;
+  position: relative; z-index: 1;
+}
+.sun-ray {
+  position: absolute; top: 50%; left: 50%;
+  width: 4px; border-radius: 2px;
+  background: linear-gradient(to top, transparent, #FFD44066);
+  transform-origin: bottom center;
+  opacity: .4; transition: opacity .7s;
+}
+
+/* ═══════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════ */
+#app {
+  position: relative; z-index: 2;
+  max-width: 540px; margin: 0 auto;
+  padding: 10px 10px 32px;
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 100dvh;
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════ */
+header {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  backdrop-filter: blur(8px);
+}
+.logo { font-size: 1.1rem; font-weight: 800; color: var(--solar); letter-spacing: .5px; }
+.logo em { color: var(--orange); font-style: normal; }
+.hscores { display: flex; gap: 14px; }
+.hs { text-align: center; }
+.hs .v { font-size: 1.15rem; font-weight: 800; color: var(--solar); font-family: 'Share Tech Mono'; line-height: 1; }
+.hs .l { font-size: .5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS STEPPER
+═══════════════════════════════════════════════════ */
+#stepper {
+  display: flex; align-items: center;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 30px; padding: 7px 12px; gap: 4px;
+  overflow-x: auto; scrollbar-width: none;
+}
+#stepper::-webkit-scrollbar { display: none; }
+.step {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .65rem; color: var(--muted); white-space: nowrap;
+  transition: color .3s;
+}
+.step .num {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .6rem; font-weight: 700;
+  transition: background .3s, border-color .3s, box-shadow .3s;
+  flex-shrink: 0;
+}
+.step.active { color: var(--solar); }
+.step.active .num { background: var(--solar); border-color: var(--solar); color: #000; box-shadow: 0 0 8px var(--solar); }
+.step.done { color: var(--green); }
+.step.done .num { background: var(--green); border-color: var(--green); color: #000; }
+.step-sep { color: rgba(255,255,255,.12); font-size: .8rem; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════
+   INSTRUCTION BAR
+═══════════════════════════════════════════════════ */
+#instr {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 9px 13px;
+  font-size: .78rem; color: var(--muted); line-height: 1.5;
+  min-height: 48px;
+}
+#instr strong { color: var(--solar); }
+#instr .tag {
+  display: inline-block; background: var(--solar); color: #000;
+  font-weight: 800; font-size: .6rem; padding: 1px 8px;
+  border-radius: 20px; margin-right: 5px;
+}
+
+/* ═══════════════════════════════════════════════════
+   SELECTION HINT
+═══════════════════════════════════════════════════ */
+#hint {
+  text-align: center; font-size: .72rem; color: var(--solar);
+  background: rgba(255,212,64,.07); border: 1px solid rgba(255,212,64,.25);
+  border-radius: 8px; padding: 6px 12px;
+  display: none; animation: fadeIn .2s ease;
+}
+#hint.on { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+
+/* ═══════════════════════════════════════════════════
+   MODULE PICKER (Step 0 overlay)
+═══════════════════════════════════════════════════ */
+#module-picker {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 12px 14px;
+}
+#module-picker h3 { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.mod-opts { display: flex; gap: 8px; }
+.mod-opt {
+  flex: 1; border: 2px solid var(--border); border-radius: 9px;
+  padding: 10px 8px; text-align: center; cursor: pointer;
+  transition: border-color .2s, background .2s, transform .15s;
+  background: rgba(255,255,255,.02);
+}
+.mod-opt:active { transform: scale(.95); }
+.mod-opt.chosen { border-color: var(--solar); background: rgba(255,212,64,.08); }
+.mod-opt .mw { font-size: 1.1rem; font-weight: 800; color: var(--solar); font-family: 'Share Tech Mono'; }
+.mod-opt .ml { font-size: .6rem; color: var(--muted); margin-bottom: 4px; }
+.mod-opt .mprice { font-size: .62rem; color: var(--green); }
+.mod-opt .meff { font-size: .58rem; color: var(--blue); margin-top: 2px; }
+#confirm-modules {
+  margin-top: 10px; width: 100%;
+  background: linear-gradient(135deg, var(--solar), var(--orange));
+  color: #000; font-weight: 800; font-size: .82rem;
+  border-radius: 8px; padding: 10px;
+  opacity: .4; pointer-events: none; transition: opacity .3s;
+}
+#confirm-modules.on { opacity: 1; pointer-events: all; }
+#confirm-modules:active { transform: scale(.97); }
+
+/* ═══════════════════════════════════════════════════
+   SHELF (Steps 1+)
+═══════════════════════════════════════════════════ */
+#shelf {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 10px 12px;
+  display: none;
+}
+#shelf.on { display: block; }
+#shelf h3 { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+#shelf-items { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: rgba(255,255,255,.03); border: 2px solid var(--border);
+  border-radius: 9px; padding: 8px 10px;
+  cursor: pointer; position: relative;
+  transition: border-color .2s, background .2s, transform .15s;
+  min-width: 68px;
+}
+.item:active { transform: scale(.93); }
+.item.sel { border-color: var(--solar); background: rgba(255,212,64,.1); box-shadow: 0 0 10px rgba(255,212,64,.25); }
+.item.done-item { border-color: var(--green); opacity: .5; pointer-events: none; }
+.item.disabled { opacity: .28; pointer-events: none; }
+.item .ico { font-size: 1.6rem; }
+.item .nm { font-size: .6rem; font-weight: 600; color: var(--text); text-align: center; line-height: 1.2; }
+.item .qty {
+  position: absolute; top: 3px; right: 4px;
+  font-size: .55rem; font-family: 'Share Tech Mono';
+  background: var(--orange); color: #fff;
+  border-radius: 99px; padding: 0px 5px; font-weight: 700;
+}
+.item.sel .qty { background: var(--solar); color: #000; }
+
+/* ═══════════════════════════════════════════════════
+   SCENE
+═══════════════════════════════════════════════════ */
+#scene {
+  flex: 1; position: relative;
+  background: rgba(10,24,48,.55); border: 1.5px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  min-height: 340px;
+}
+
+/* ── House ── */
+#house {
+  position: absolute; bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 420px);
+}
+.roof-wrap { position: relative; width: 100%; }
+svg.roof-svg { display: block; width: 100%; }
+#panel-zones { position: absolute; inset: 0; pointer-events: none; }
+
+.pslot {
+  position: absolute; border-radius: 3px;
+  border: 1.5px dashed rgba(255,212,64,.2);
+  background: rgba(255,212,64,.015);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .5rem; color: rgba(255,212,64,.3);
+  pointer-events: all; transition: all .2s; cursor: pointer;
+}
+.pslot.ready { border-color: var(--solar); background: rgba(255,212,64,.07); animation: pulse 1.1s infinite alternate; }
+.pslot.installed { border-color: var(--green); pointer-events: none; animation: none; }
+@keyframes pulse { from{opacity:.6} to{opacity:1} }
+
+.panel-render {
+  width: 100%; height: 100%; border-radius: 2px;
+  display: grid; padding: 2px; gap: 1px; overflow: hidden;
+}
+
+.house-body {
+  width: 100%; height: 105px;
+  background: linear-gradient(180deg, #1E3A5F, #152E4A);
+  border-radius: 3px 3px 0 0; position: relative;
+}
+.house-win {
+  position: absolute; width: 38px; height: 32px;
+  background: rgba(255,212,64,.08); border: 1.5px solid #1E3A56;
+  border-radius: 3px; top: 22px;
+}
+.house-win.l { left: 36px; }
+.house-win.r { right: 36px; }
+.house-door {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 60px; background: #071626;
+  border-radius: 20px 20px 0 0; border: 1.5px solid #1E3A56;
+}
+
+/* ── Ground / tech area ── */
+#ground {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, #081422, #0A1C30);
+  border-top: 2px solid #1A3A5A;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  min-height: 110px;
+}
+
+/* INVERTER wall-mount zone */
+.inv-zone {
+  width: 90px; height: 88px; flex-shrink: 0;
+  border: 2px dashed rgba(255,107,43,.35); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .58rem; color: rgba(255,107,43,.5); text-align: center;
+  padding: 5px; background: rgba(255,107,43,.02);
+  transition: all .25s; cursor: pointer; line-height: 1.4;
+}
+.inv-zone.ready { border-color: var(--orange); background: rgba(255,107,43,.09); animation: pulse 1s infinite alternate; }
+.inv-zone.installed { border-color: var(--green); animation: none; pointer-events: none; cursor: default; }
+
+.inv-body {
+  width: 100%; height: 100%;
+  background: linear-gradient(150deg, #243A58, #162A42);
+  border-radius: 6px; border: 1.5px solid #3A5A7A;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+.inv-label { font-size: .48rem; font-weight: 700; color: var(--solar); letter-spacing: 1px; }
+.inv-display {
+  width: 70%; height: 22px; background: #050F1E;
+  border-radius: 3px; border: 1px solid #1E3A56;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Share Tech Mono'; font-size: .65rem; color: var(--green);
+}
+.inv-leds { display: flex; gap: 4px; }
+.inv-led { width: 5px; height: 5px; border-radius: 50%; animation: blink 1.2s infinite alternate; }
+@keyframes blink { from{opacity:.25} to{opacity:1} }
+
+/* QUADRO zone */
+.quadro-zone {
+  width: 74px; height: 88px; flex-shrink: 0;
+  border: 2px dashed rgba(77,184,255,.3); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .55rem; color: rgba(77,184,255,.45); text-align: center;
+  padding: 4px; background: rgba(77,184,255,.02);
+  transition: all .25s; cursor: pointer; line-height: 1.4;
+}
+.quadro-zone.ready { border-color: var(--blue); background: rgba(77,184,255,.09); animation: pulse 1s infinite alternate; }
+.quadro-zone.installed { border-color: var(--green); animation: none; pointer-events: none; cursor: default; }
+
+.quadro-body {
+  width: 100%; height: 100%;
+  background: linear-gradient(150deg, #1A2E48, #101E30);
+  border-radius: 5px; border: 1.5px solid #2A4060;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  overflow: hidden;
+}
+.qb-label { font-size: .45rem; font-weight: 700; color: var(--blue); letter-spacing: .5px; }
+.qb-rows { display: flex; flex-direction: column; gap: 2px; width: 80%; }
+.qb-row { display: flex; gap: 2px; justify-content: center; }
+.qb-dis {
+  width: 10px; height: 18px; border-radius: 2px;
+  background: linear-gradient(180deg, #3A5A7A, #2A4060);
+  border: 1px solid #4A6A8A;
+  display: flex; align-items: center; justify-content: center;
+}
+.qb-dis.on { background: linear-gradient(180deg, var(--orange), #cc4400); }
+.qb-dis::after { content:''; width:3px; height:8px; background: rgba(255,255,255,.3); border-radius: 1px; }
+
+/* ENERGY METER */
+.meter-zone {
+  width: 62px; height: 88px; flex-shrink: 0;
+  border: 2px dashed rgba(46,204,138,.3); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .54rem; color: rgba(46,204,138,.45); text-align: center;
+  padding: 4px; background: rgba(46,204,138,.02);
+  transition: all .25s; line-height: 1.4;
+  cursor: default;
+}
+.meter-zone.installed { border-color: var(--green); }
+
+.meter-body {
+  width: 100%; height: 100%;
+  background: linear-gradient(150deg, #142814, #0E1E0E);
+  border-radius: 5px; border: 1.5px solid #1E5A2A;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.meter-lbl { font-size: .44rem; font-weight: 700; color: var(--green); letter-spacing: .5px; }
+.meter-disp {
+  width: 80%; height: 20px; background: #001400;
+  border-radius: 2px; border: 1px solid #1E5A2A;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Share Tech Mono'; font-size: .55rem; color: #88FF88;
+}
+.meter-unit { font-size: .42rem; color: rgba(46,204,138,.6); }
+
+/* GROUND RIGHT */
+#ground-right {
+  flex: 1; display: flex; flex-direction: column; gap: 5px;
+}
+#wire-btn {
+  background: linear-gradient(135deg, var(--solar), var(--orange));
+  color: #000; font-weight: 800; font-size: .72rem;
+  border-radius: 8px; padding: 8px 10px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s; text-align: center;
+  box-shadow: 0 3px 10px rgba(255,212,64,.2);
+}
+#wire-btn.on { opacity: 1; pointer-events: all; }
+#wire-btn:active { transform: scale(.96); }
+
+.ebar-lbl { font-size: .52rem; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+.ebar-bg { height: 7px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; border: 1px solid rgba(255,212,64,.1); }
+.ebar-fill { height: 100%; width: 0%; border-radius: 99px; transition: width .9s cubic-bezier(.4,0,.2,1);
+  background: linear-gradient(90deg, #FF6B2B, #FFD440, #2ECC8A); }
+.ebar-val { font-size: .58rem; font-family: 'Share Tech Mono'; color: var(--solar); text-align: right; }
+
+/* WIRE SVG */
+#wire-svg { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+
+/* ═══════════════════════════════════════════════════
+   STEP 2 — INVERTER ASSEMBLY OVERLAY
+═══════════════════════════════════════════════════ */
+#inv-assembly {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(2,8,18,.93); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: 16px;
+}
+#inv-assembly.on { display: flex; }
+
+.assembly-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; width: 100%; max-width: 420px;
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.assembly-card h2 { font-size: 1rem; font-weight: 800; color: var(--solar); }
+.assembly-card .sub { font-size: .72rem; color: var(--muted); line-height: 1.5; }
+
+.asm-steps { display: flex; flex-direction: column; gap: 8px; }
+.asm-step {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.03); border: 1.5px solid var(--border);
+  border-radius: 9px; padding: 10px 12px;
+  cursor: pointer; transition: all .2s;
+}
+.asm-step:active { transform: scale(.97); }
+.asm-step.done-s { border-color: var(--green); background: rgba(46,204,138,.07); cursor: default; }
+.asm-step.locked { opacity: .35; pointer-events: none; }
+.asm-step .asm-ico { font-size: 1.5rem; flex-shrink: 0; }
+.asm-step .asm-info { flex: 1; }
+.asm-step .asm-name { font-size: .75rem; font-weight: 700; color: var(--text); }
+.asm-step .asm-desc { font-size: .62rem; color: var(--muted); line-height: 1.4; margin-top: 1px; }
+.asm-step .asm-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; flex-shrink: 0;
+  transition: all .2s;
+}
+.asm-step.done-s .asm-check { background: var(--green); border-color: var(--green); color: #000; }
+
+.asm-progress {
+  height: 5px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden;
+}
+.asm-prog-fill { height: 100%; background: linear-gradient(90deg, var(--solar), var(--green)); border-radius: 99px; transition: width .5s ease; }
+
+#asm-done-btn {
+  background: linear-gradient(135deg, var(--solar), var(--orange));
+  color: #000; font-weight: 800; font-size: .85rem;
+  border-radius: 9px; padding: 11px;
+  opacity: .3; pointer-events: none; transition: opacity .3s;
+}
+#asm-done-btn.on { opacity: 1; pointer-events: all; }
+#asm-done-btn:active { transform: scale(.97); }
+
+/* ═══════════════════════════════════════════════════
+   WIRING PHASE PANEL
+═══════════════════════════════════════════════════ */
+#wire-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 11px 14px;
+  display: none;
+}
+#wire-panel.on { display: block; }
+#wire-panel h3 { font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.wire-tasks { display: flex; flex-direction: column; gap: 7px; }
+.wtask {
+  display: flex; align-items: center; gap: 9px;
+  background: rgba(255,255,255,.03); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 9px 12px; cursor: pointer;
+  transition: all .2s;
+}
+.wtask:active { transform: scale(.97); }
+.wtask.done-w { border-color: var(--green); background: rgba(46,204,138,.06); cursor: default; }
+.wtask.locked-w { opacity: .3; pointer-events: none; }
+.wtask .wico { font-size: 1.3rem; flex-shrink: 0; }
+.wtask .winfo { flex: 1; }
+.wtask .wname { font-size: .73rem; font-weight: 700; color: var(--text); }
+.wtask .wdesc { font-size: .6rem; color: var(--muted); }
+.wtask .wcheck {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center; font-size: .65rem; flex-shrink: 0;
+  transition: all .2s;
+}
+.wtask.done-w .wcheck { background: var(--green); border-color: var(--green); color: #000; }
+
+/* ═══════════════════════════════════════════════════
+   SUCCESS SCREEN
+═══════════════════════════════════════════════════ */
+#success {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(5px);
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+#success.on { display: flex; }
+.scard {
+  background: var(--card); border: 2px solid var(--solar);
+  border-radius: 16px; width: 100%; max-width: 380px;
+  padding: 28px 22px; text-align: center;
+}
+.scard .trophy { font-size: 3.2rem; }
+.scard h2 { font-size: 1.5rem; font-weight: 800; color: var(--solar); margin: 6px 0 4px; }
+.scard .sub { font-size: .78rem; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+.sstats { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+.ss { text-align: center; min-width: 70px; }
+.ss .sv { font-size: 1.3rem; font-weight: 800; color: var(--green); font-family: 'Share Tech Mono'; }
+.ss .sl { font-size: .55rem; color: var(--muted); text-transform: uppercase; }
+#restart-btn {
+  background: linear-gradient(135deg, var(--solar), var(--orange));
+  color: #000; font-weight: 800; font-size: .9rem;
+  border-radius: 10px; padding: 11px 28px; cursor: pointer;
+}
+#restart-btn:active { transform: scale(.96); }
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 22px; left: 50%;
+  transform: translateX(-50%) translateY(50px);
+  background: rgba(10,28,54,.96); border: 1px solid var(--solar);
+  border-radius: 30px; padding: 8px 18px;
+  font-size: .76rem; color: var(--text); z-index: 500;
+  transition: transform .35s cubic-bezier(.4,2,.5,1);
+  pointer-events: none; white-space: nowrap; max-width: 90vw;
+  text-overflow: ellipsis; overflow: hidden;
+}
+#toast.on { transform: translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════════════════════
+   ENERGY FLOW ANIMATION
+═══════════════════════════════════════════════════ */
+.flow-dot {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--solar); box-shadow: 0 0 6px var(--solar);
+  pointer-events: none; z-index: 11;
+  animation: flowMove var(--dur,2s) linear infinite;
+}
+@keyframes flowMove {
+  0%   { offset-distance: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="sun"><div id="sun-rays"></div><div class="sun-core" id="sun-core"></div></div>
+<div id="toast"></div>
+
+<!-- ═══ INVERTER ASSEMBLY OVERLAY ═══ -->
+<div id="inv-assembly">
+  <div class="assembly-card">
+    <h2>⚙️ Montagem do Inversor</h2>
+    <p class="sub">Siga as etapas para montar e fixar o inversor corretamente na parede.</p>
+    <div class="asm-progress"><div class="asm-prog-fill" id="asm-fill" style="width:0%"></div></div>
+    <div class="asm-steps" id="asm-steps"></div>
+    <button id="asm-done-btn" onclick="finishAssembly()">✅ Inversor Montado!</button>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="app">
+
+  <header>
+    <div class="logo">Solar<em>Pro</em> Installer</div>
+    <div id="stepper"></div>
+    <div class="hscores">
+      <div class="hs"><div class="v" id="spts">0</div><div class="l">Pts</div></div>
+      <div class="hs"><div class="v" id="skwp">0.0</div><div class="l">kWp</div></div>
+    </div>
+  </header>
+
+  <div id="instr"></div>
+  <div id="hint"></div>
+
+  <!-- Step 0: Module Picker -->
+  <div id="module-picker">
+    <h3>Escolha o tipo de módulo fotovoltaico</h3>
+    <div class="mod-opts" id="mod-opts"></div>
+    <button id="confirm-modules" onclick="confirmModules()">Confirmar e Instalar Módulos →</button>
+  </div>
+
+  <!-- Steps 1+: Shelf -->
+  <div id="shelf"><h3>Componentes</h3><div id="shelf-items"></div></div>
+
+  <!-- Wiring tasks panel -->
+  <div id="wire-panel"><h3>Cabeamento</h3><div class="wire-tasks" id="wire-tasks"></div></div>
+
+  <!-- Scene -->
+  <div id="scene">
+    <svg id="wire-svg"></svg>
+
+    <div id="house">
+      <div class="roof-wrap">
+        <svg class="roof-svg" viewBox="0 0 420 140" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="0,140 210,10 420,140" fill="#5C3020"/>
+          <defs>
+            <pattern id="tp" x="0" y="0" width="28" height="18" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="9" x2="28" y2="9" stroke="#7A4A30" stroke-width="1.5" opacity=".5"/>
+              <line x1="14" y1="0" x2="14" y2="9" stroke="#7A4A30" stroke-width="1" opacity=".3"/>
+            </pattern>
+          </defs>
+          <polygon points="0,140 210,10 420,140" fill="url(#tp)"/>
+          <polyline points="0,140 210,10 420,140" fill="none" stroke="#8B5A40" stroke-width="2.5"/>
+        </svg>
+        <div id="panel-zones"></div>
+      </div>
+      <div class="house-body">
+        <div class="house-win l"></div>
+        <div class="house-win r"></div>
+        <div class="house-door"></div>
+      </div>
+    </div>
+
+    <div id="ground">
+      <div class="inv-zone" id="inv-zone">🔧 Toque para<br>instalar<br>inversor</div>
+      <div class="quadro-zone" id="quadro-zone">⬛ Toque para<br>instalar<br>quadro</div>
+      <div class="meter-zone" id="meter-zone">🔌 Relógio<br>contador</div>
+      <div id="ground-right">
+        <button id="wire-btn" onclick="startWiring()">🔌 Iniciar Cabeamento</button>
+        <div class="ebar-lbl">Energia gerada</div>
+        <div class="ebar-bg"><div class="ebar-fill" id="ebar"></div></div>
+        <div class="ebar-val" id="ebarval">0 W</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SUCCESS -->
+<div id="success">
+  <div class="scard">
+    <div class="trophy">🏆</div>
+    <h2>Sistema Ativo!</h2>
+    <p class="sub">Instalação concluída. O sistema fotovoltaico está gerando energia limpa e conectado à rede elétrica.</p>
+    <div class="sstats">
+      <div class="ss"><div class="sv" id="f-kwp">0</div><div class="sl">kWp</div></div>
+      <div class="ss"><div class="sv" id="f-pts">0</div><div class="sl">Pontos</div></div>
+      <div class="ss"><div class="sv" id="f-eco">R$0</div><div class="sl">/mês est.</div></div>
+      <div class="ss"><div class="sv" id="f-co2">0kg</div><div class="sl">CO₂/mês</div></div>
+    </div>
+    <button id="restart-btn" onclick="restart()">🔄 Nova Instalação</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════ */
+const MODULE_TYPES = [
+  { id:'330', watts:330, qty:10, label:'Compacto', price:'R$420/un', eff:'17.2%', color:'#4DB8FF',
+    desc:'10 módulos', kwp:3.30 },
+  { id:'405', watts:405, qty:8,  label:'Padrão',   price:'R$510/un', eff:'19.8%', color:'#FFD440',
+    desc:'8 módulos', kwp:3.24 },
+  { id:'550', watts:550, qty:6,  label:'Premium',  price:'R$680/un', eff:'21.5%', color:'#FF6B2B',
+    desc:'6 módulos', kwp:3.30 },
+];
+
+const ASSEMBLY_STEPS = [
+  { ico:'📦', name:'Desembalar o inversor',       desc:'Retire o inversor da embalagem e verifique componentes' },
+  { ico:'🔩', name:'Fixar suporte na parede',      desc:'Parafuse o suporte de fixação na parede (4 parafusos)' },
+  { ico:'🔧', name:'Encaixar o inversor',          desc:'Encaixe o inversor no suporte com firmeza' },
+  { ico:'⚡', name:'Conectar aterramento',          desc:'Ligue o cabo de aterramento ao terminal PE' },
+  { ico:'📋', name:'Verificar instalação',         desc:'Confirme alinhamento e aperto de todas as conexões' },
+];
+
+const WIRE_TASKS = [
+  { id:'pv_inv',  ico:'🔲', name:'Módulos → Inversor',    desc:'Cabos string CC dos painéis ao inversor (polo + e −)', color:'#FFD440' },
+  { id:'inv_qd',  ico:'⚡', name:'Inversor → Quadro',      desc:'Cabo AC do inversor ao quadro de disjuntores',         color:'#4DB8FF' },
+  { id:'qd_med',  ico:'⬛', name:'Quadro → Relógio',       desc:'Cabo do quadro geral ao medidor bidirecional',         color:'#2ECC8A' },
+];
+
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+const G = {
+  step: 0,           // 0=choose module, 1=install panels, 2=assemble inverter, 3=install quadro, 4=wiring, 5=done
+  chosenMod: null,
+  panels: 0,
+  maxPanels: 0,
+  kwp: 0,
+  invAssembled: false,
+  asmDone: [false,false,false,false,false],
+  quadroInstalled: false,
+  wiredTasks: { pv_inv:false, inv_qd:false, qd_med:false },
+  score: 0,
+  selected: null,   // shelf item id
+};
+
+/* ═══════════════════════════════════════════════════
+   STEP DEFINITIONS
+═══════════════════════════════════════════════════ */
+const STEPS_DEF = [
+  { label: 'Módulo' },
+  { label: 'Painéis' },
+  { label: 'Inversor' },
+  { label: 'Quadro' },
+  { label: 'Cabos' },
+  { label: 'Ligado' },
+];
+
+/* ═══════════════════════════════════════════════════
+   DECORATIVE
+═══════════════════════════════════════════════════ */
+(function initBg(){
+  const bg = document.getElementById('bg');
+  for(let i=0;i<65;i++){
+    const s=document.createElement('div'); s.className='star';
+    const sz=.7+Math.random()*1.5;
+    s.style.cssText=`left:${Math.random()*100}vw;top:${Math.random()*65}vh;width:${sz}px;height:${sz}px;--d:${2+Math.random()*4}s;--op:${.3+Math.random()*.6};animation-delay:${Math.random()*5}s`;
+    bg.appendChild(s);
+  }
+  const rc=document.getElementById('sun-rays');
+  for(let i=0;i<12;i++){
+    const r=document.createElement('div'); r.className='sun-ray';
+    const len=12+Math.random()*8;
+    r.style.cssText=`height:${len}px;margin-left:-2px;transform:rotate(${i*30}deg) translateY(-${28+len/2}px)`;
+    rc.appendChild(r);
+  }
+})();
+
+/* ═══════════════════════════════════════════════════
+   STEPPER
+═══════════════════════════════════════════════════ */
+function renderStepper(){
+  const el=document.getElementById('stepper'); el.innerHTML='';
+  STEPS_DEF.forEach((s,i)=>{
+    if(i>0){ const sep=document.createElement('span'); sep.className='step-sep'; sep.textContent='›'; el.appendChild(sep); }
+    const d=document.createElement('div');
+    d.className='step'+(i<G.step?' done':i===G.step?' active':'');
+    d.innerHTML=`<div class="num">${i<G.step?'✓':(i+1)}</div><span>${s.label}</span>`;
+    el.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   INSTRUCTIONS
+═══════════════════════════════════════════════════ */
+const INSTRS = [
+  `<span class="tag">1</span>Escolha o <strong>tipo de módulo</strong> para esta instalação e confirme.`,
+  `<span class="tag">2</span>Selecione <strong>Módulo FV</strong> na prateleira e toque nos espaços do telhado para instalar <strong>todos os módulos</strong>.`,
+  `<span class="tag">3</span>Selecione o <strong>Inversor</strong> e toque na área técnica para iniciar a <strong>montagem passo a passo</strong>.`,
+  `<span class="tag">4</span>Selecione o <strong>Quadro de Disjuntores</strong> e instale-o na área técnica.`,
+  `<span class="tag">5</span>Execute o <strong>cabeamento completo</strong> do sistema — puxe os cabos em ordem: painéis → inversor → quadro → relógio.`,
+  `<span class="tag">6</span>✅ <strong>Sistema em operação!</strong> O inversor está convertendo energia solar em corrente elétrica para a rede.`,
+];
+function updateInstr(){ document.getElementById('instr').innerHTML = INSTRS[Math.min(G.step,5)]; }
+
+/* ═══════════════════════════════════════════════════
+   MODULE PICKER
+═══════════════════════════════════════════════════ */
+function renderModulePicker(){
+  const el=document.getElementById('mod-opts'); el.innerHTML='';
+  MODULE_TYPES.forEach(m=>{
+    const d=document.createElement('div');
+    d.className='mod-opt'+(G.chosenMod===m.id?' chosen':'');
+    d.innerHTML=`
+      <div class="ml" style="color:${m.color}">${m.label}</div>
+      <div class="mw" style="color:${m.color}">${m.watts}W</div>
+      <div class="ml">${m.desc}</div>
+      <div class="mprice">${m.price}</div>
+      <div class="meff">η ${m.eff}</div>`;
+    d.onclick=()=>{ G.chosenMod=m.id; renderModulePicker();
+      document.getElementById('confirm-modules').classList.add('on'); };
+    el.appendChild(d);
+  });
+}
+
+function confirmModules(){
+  const mod=MODULE_TYPES.find(m=>m.id===G.chosenMod);
+  G.maxPanels=mod.qty;
+  initComps();
+  document.getElementById('module-picker').style.display='none';
+  G.step=1; renderStepper(); updateInstr();
+  document.getElementById('shelf').classList.add('on');
+  buildSlots(); renderShelf();
+  // Auto-select panel so player just taps the roof directly
+  G.selected='panel'; renderShelf(); updateHint(); updateSlotReady();
+  toast(`✅ ${mod.watts}W — toque nos espaços do telhado para instalar!`);
+}
+
+/* ═══════════════════════════════════════════════════
+   PANEL SLOTS
+═══════════════════════════════════════════════════ */
+const SLOT_CFGS_BY_QTY = {
+  6: [
+    {t:.38,l:.10,w:.16,h:.30,rot:-28},{t:.24,l:.21,w:.16,h:.30,rot:-28},{t:.10,l:.32,w:.16,h:.30,rot:-28},
+    {t:.10,l:.52,w:.16,h:.30,rot:28},{t:.24,l:.63,w:.16,h:.30,rot:28},{t:.38,l:.74,w:.16,h:.30,rot:28},
+  ],
+  8: [
+    {t:.40,l:.06,w:.14,h:.28,rot:-28},{t:.28,l:.17,w:.14,h:.28,rot:-28},{t:.16,l:.28,w:.14,h:.28,rot:-28},{t:.04,l:.39,w:.14,h:.28,rot:-28},
+    {t:.04,l:.47,w:.14,h:.28,rot:28},{t:.16,l:.58,w:.14,h:.28,rot:28},{t:.28,l:.69,w:.14,h:.28,rot:28},{t:.40,l:.80,w:.14,h:.28,rot:28},
+  ],
+  10: [
+    {t:.42,l:.04,w:.12,h:.26,rot:-28},{t:.32,l:.13,w:.12,h:.26,rot:-28},{t:.22,l:.22,w:.12,h:.26,rot:-28},{t:.12,l:.31,w:.12,h:.26,rot:-28},{t:.02,l:.40,w:.12,h:.26,rot:-28},
+    {t:.02,l:.48,w:.12,h:.26,rot:28},{t:.12,l:.57,w:.12,h:.26,rot:28},{t:.22,l:.66,w:.12,h:.26,rot:28},{t:.32,l:.75,w:.12,h:.26,rot:28},{t:.42,l:.84,w:.12,h:.26,rot:28},
+  ],
+};
+
+function buildSlots(){
+  const z=document.getElementById('panel-zones'); z.innerHTML='';
+  const svg=document.querySelector('.roof-svg');
+  const W=svg.clientWidth||420, H=svg.clientHeight||140;
+  const cfgs=SLOT_CFGS_BY_QTY[G.maxPanels]||SLOT_CFGS_BY_QTY[6];
+  cfgs.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='pslot'; d.id='ps'+i; d.dataset.i=i; d.textContent='+';
+    d.style.cssText=`top:${c.t*H}px;left:${c.l*W}px;width:${c.w*W}px;height:${c.h*H}px;transform:rotate(${c.rot}deg)`;
+    d.addEventListener('click',()=>onSlotClick(d));
+    z.appendChild(d);
+  });
+}
+
+function onSlotClick(slot){
+  if(slot.classList.contains('installed')) return;
+  if(G.step!==1){ toast('⚠️ Instale os módulos agora!'); return; }
+  if(G.selected!=='panel'){ toast('☀️ Selecione Módulo FV na prateleira'); return; }
+  installPanel(slot);
+}
+
+function installPanel(slot){
+  const mod=MODULE_TYPES.find(m=>m.id===G.chosenMod);
+  const comp=getComp('panel'); if(!comp||comp.qty<=0) return;
+  comp.qty--; G.panels++; G.kwp+=mod.watts/1000;
+  addScore(80+mod.watts/10);
+
+  // Render panel cells
+  slot.classList.add('installed');
+  const pr=document.createElement('div'); pr.className='panel-render';
+  const rows=4, cols=3;
+  pr.style.gridTemplateRows=`repeat(${rows},1fr)`;
+  pr.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  // Color by module type
+  const bg = G.chosenMod==='330'?'#0A1E40': G.chosenMod==='405'?'#0A2848':'#0E1E30';
+  const ln = G.chosenMod==='330'?'#1A3A70': G.chosenMod==='405'?'#1A4878':'#1E3458';
+  for(let i=0;i<rows*cols;i++){
+    const c=document.createElement('div');
+    c.style.cssText=`background:${bg};border-radius:1px;border:.5px solid ${ln}`;
+    pr.appendChild(c);
+  }
+  slot.innerHTML=''; slot.appendChild(pr);
+
+  if(comp.qty===0){ G.selected=null; }
+  renderShelf(); updateKwp(); animateSun(); updateSlotReady(); updateHint();
+  toast(`☀️ Módulo ${G.panels}/${G.maxPanels} instalado! +${Math.round(80+mod.watts/10)} pts`);
+
+  if(G.panels===G.maxPanels){
+    G.selected=null;
+    setTimeout(()=>{
+      G.step=2; renderStepper(); updateInstr(); renderShelf(); updateSlotReady();
+      // Auto-select inverter
+      G.selected='inverter'; renderShelf(); updateHint(); updateInvZoneReady();
+      toast('✅ Módulos instalados! Toque na área do inversor para montar.');
+    },400);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   SHELF
+═══════════════════════════════════════════════════ */
+const SHELF_ITEMS_DEF = {
+  1: [ // install panels
+    { id:'panel',   ico:'🔲', name:'Módulo FV',  qty_key:'panel_qty' },
+  ],
+  2: [ // assemble inverter
+    { id:'inverter', ico:'⚡', name:'Inversor',   qty:1, maxq:1 },
+  ],
+  3: [ // install quadro
+    { id:'quadro', ico:'⬛', name:'Quadro DJ',  qty:1, maxq:1 },
+  ],
+};
+const shelfState = { panel_qty: 0 };
+
+function getComp(id){
+  return _comps[id];
+}
+const _comps = {
+  panel:    { id:'panel',    qty:0 },
+  inverter: { id:'inverter', qty:1 },
+  quadro:   { id:'quadro',   qty:1 },
+};
+
+function initComps(){
+  const mod=MODULE_TYPES.find(m=>m.id===G.chosenMod);
+  _comps.panel.qty = mod ? mod.qty : 6;
+  _comps.inverter.qty=1;
+  _comps.quadro.qty=1;
+}
+
+function renderShelf(){
+  const el=document.getElementById('shelf-items'); el.innerHTML='';
+  const stepComps = {
+    1: ['panel'],
+    2: ['inverter'],
+    3: ['quadro'],
+  };
+  const ids = stepComps[G.step]||[];
+  const names = { panel:'Módulo FV', inverter:'Inversor', quadro:'Quadro DJ' };
+  const icos  = { panel:'🔲',        inverter:'⚡',        quadro:'⬛' };
+
+  ids.forEach(id=>{
+    const comp=_comps[id];
+    const d=document.createElement('div');
+    const isDone = comp.qty===0;
+    d.className='item'+(isDone?' done-item':G.selected===id?' sel':'');
+    d.dataset.id=id;
+    const qtyBadge = comp.qty>0 ? `<span class="qty">${comp.qty}×</span>` : '';
+    d.innerHTML=`${qtyBadge}<span class="ico">${icos[id]}</span><span class="nm">${names[id]}</span>`;
+    if(!isDone) d.addEventListener('click',()=>selectItem(id));
+    el.appendChild(d);
+  });
+}
+
+function selectItem(id){
+  if(G.selected===id){ G.selected=null; } else { G.selected=id; }
+  renderShelf(); updateHint(); updateSlotReady(); updateInvZoneReady(); updateQuadroZoneReady();
+}
+
+function updateHint(){
+  const h=document.getElementById('hint');
+  if(!G.selected){ h.classList.remove('on'); return; }
+  const remaining = _comps.panel.qty;
+  const tips={
+    panel: `🔲 Módulo selecionado — toque nos espaços do telhado (${remaining} restante${remaining!==1?'s':''})`,
+    inverter: `⚡ Inversor selecionado — toque na área técnica para montar`,
+    quadro: `⬛ Quadro selecionado — toque na área do quadro`,
+  };
+  h.textContent=tips[G.selected]||'';
+  h.classList.add('on');
+}
+
+function updateSlotReady(){
+  document.querySelectorAll('.pslot:not(.installed)').forEach(s=>{
+    s.classList.toggle('ready', G.step===1 && G.selected==='panel');
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   INVERTER ZONE & ASSEMBLY
+═══════════════════════════════════════════════════ */
+function updateInvZoneReady(){
+  const z=document.getElementById('inv-zone');
+  if(!z.classList.contains('installed'))
+    z.classList.toggle('ready', G.step===2 && G.selected==='inverter');
+}
+
+document.getElementById('inv-zone').addEventListener('click',()=>{
+  const z=document.getElementById('inv-zone');
+  if(z.classList.contains('installed')) return;
+  if(G.step!==2){ toast('⚠️ Instale todos os módulos primeiro!'); return; }
+  if(G.selected!=='inverter'){ toast('⚡ Selecione o Inversor na prateleira'); return; }
+  openAssembly();
+});
+
+function openAssembly(){
+  G.selected=null; renderShelf(); updateHint();
+  renderAssemblySteps();
+  document.getElementById('inv-assembly').classList.add('on');
+}
+
+function renderAssemblySteps(){
+  const el=document.getElementById('asm-steps'); el.innerHTML='';
+  ASSEMBLY_STEPS.forEach((s,i)=>{
+    const done=G.asmDone[i];
+    const prevDone = i===0 || G.asmDone[i-1];
+    const d=document.createElement('div');
+    d.className='asm-step'+(done?' done-s':(!prevDone?' locked':''));
+    d.innerHTML=`
+      <span class="asm-ico">${s.ico}</span>
+      <div class="asm-info"><div class="asm-name">${s.name}</div><div class="asm-desc">${s.desc}</div></div>
+      <div class="asm-check">${done?'✓':''}</div>`;
+    if(!done && prevDone) d.addEventListener('click',()=>doAsmStep(i));
+    el.appendChild(d);
+  });
+  const done=G.asmDone.filter(Boolean).length;
+  document.getElementById('asm-fill').style.width=(done/ASSEMBLY_STEPS.length*100)+'%';
+  document.getElementById('asm-done-btn').classList.toggle('on', done===ASSEMBLY_STEPS.length);
+}
+
+function doAsmStep(i){
+  G.asmDone[i]=true;
+  addScore(60);
+  renderAssemblySteps();
+  const labels=['Inversor desembalado!','Suporte fixado!','Inversor encaixado!','Aterramento conectado!','Instalação verificada!'];
+  toast('✅ '+labels[i]);
+}
+
+function finishAssembly(){
+  document.getElementById('inv-assembly').classList.remove('on');
+  G.invAssembled=true; addScore(150);
+  const z=document.getElementById('inv-zone');
+  z.classList.add('installed'); z.innerHTML='';
+  const ir=document.createElement('div'); ir.className='inv-body';
+  ir.innerHTML=`<div class="inv-label">INVERSOR</div>
+    <div class="inv-display" id="inv-disp">--- W</div>
+    <div class="inv-leds">
+      <div class="inv-led" style="background:#FFD440"></div>
+      <div class="inv-led" style="background:#FF5555"></div>
+      <div class="inv-led" style="background:#334"></div>
+    </div>`;
+  z.appendChild(ir);
+
+  setTimeout(()=>{
+    G.step=3; renderStepper(); updateInstr(); renderShelf(); updateQuadroZoneReady();
+    // Auto-select quadro
+    G.selected='quadro'; renderShelf(); updateHint(); updateQuadroZoneReady();
+    toast('⚡ Inversor montado! Toque na área do quadro para instalar.');
+  },300);
+}
+
+/* ═══════════════════════════════════════════════════
+   QUADRO ZONE
+═══════════════════════════════════════════════════ */
+function updateQuadroZoneReady(){
+  const z=document.getElementById('quadro-zone');
+  if(!z.classList.contains('installed'))
+    z.classList.toggle('ready', G.step===3 && G.selected==='quadro');
+}
+
+document.getElementById('quadro-zone').addEventListener('click',()=>{
+  const z=document.getElementById('quadro-zone');
+  if(z.classList.contains('installed')) return;
+  if(G.step!==3){ toast('⚠️ Monte o inversor primeiro!'); return; }
+  if(G.selected!=='quadro'){ toast('⬛ Selecione o Quadro DJ na prateleira'); return; }
+  installQuadro();
+});
+
+function installQuadro(){
+  _comps.quadro.qty=0; G.quadroInstalled=true; G.selected=null;
+  addScore(120);
+  const z=document.getElementById('quadro-zone');
+  z.classList.add('installed'); z.innerHTML='';
+  const qb=document.createElement('div'); qb.className='quadro-body';
+  // Build disjuntores display
+  let rows='';
+  for(let r=0;r<3;r++){
+    let cells='';
+    for(let c=0;c<4;c++) cells+=`<div class="qb-dis${r===0&&c<2?' on':''}"></div>`;
+    rows+=`<div class="qb-row">${cells}</div>`;
+  }
+  qb.innerHTML=`<div class="qb-label">QUADRO</div><div class="qb-rows">${rows}</div>`;
+  z.appendChild(qb);
+
+  // Also render meter
+  const mz=document.getElementById('meter-zone');
+  mz.classList.add('installed'); mz.innerHTML='';
+  const mb=document.createElement('div'); mb.className='meter-body';
+  mb.innerHTML=`<div class="meter-lbl">MEDIDOR</div>
+    <div class="meter-disp" id="meter-disp">00000</div>
+    <div class="meter-unit">kWh bidirecional</div>`;
+  mz.appendChild(mb);
+
+  renderShelf(); updateHint();
+
+  setTimeout(()=>{
+    G.step=4; renderStepper(); updateInstr();
+    document.getElementById('shelf').classList.remove('on');
+    document.getElementById('wire-panel').classList.add('on');
+    renderWireTasks();
+    toast('⬛ Quadro instalado! Agora faça o cabeamento.');
+  },300);
+}
+
+/* ═══════════════════════════════════════════════════
+   WIRING TASKS
+═══════════════════════════════════════════════════ */
+function renderWireTasks(){
+  const el=document.getElementById('wire-tasks'); el.innerHTML='';
+  const order=['pv_inv','inv_qd','qd_med'];
+  order.forEach((id,i)=>{
+    const t=WIRE_TASKS.find(x=>x.id===id);
+    const done=G.wiredTasks[id];
+    const prev=i===0||G.wiredTasks[order[i-1]];
+    const d=document.createElement('div');
+    d.className='wtask'+(done?' done-w':!prev?' locked-w':'');
+    d.innerHTML=`
+      <span class="wico">${t.ico}</span>
+      <div class="winfo"><div class="wname">${t.name}</div><div class="wdesc">${t.desc}</div></div>
+      <div class="wcheck">${done?'✓':''}</div>`;
+    if(!done&&prev) d.addEventListener('click',()=>doWireTask(id,d,t.color));
+    el.appendChild(d);
+  });
+}
+
+function doWireTask(id, el, color){
+  G.wiredTasks[id]=true;
+  addScore(100);
+  drawWireSegment(id, color);
+  renderWireTasks();
+  const msgs={
+    pv_inv:'🔲 Cabos string conectados ao inversor!',
+    inv_qd:'⚡ Cabo CA conectado ao quadro!',
+    qd_med:'⬛ Cabo do quadro ao medidor conectado!',
+  };
+  toast(msgs[id]);
+
+  // Activate meter display
+  if(id==='inv_qd'){
+    const d=document.getElementById('inv-disp');
+    if(d){ let v=0; const tgt=Math.round(G.kwp*1000*.87);
+      const iv=setInterval(()=>{ v+=Math.floor(tgt/20); if(v>=tgt){v=tgt;clearInterval(iv);} d.textContent=v+' W'; },70); }
+    document.querySelectorAll('.inv-led').forEach((l,i)=>{
+      l.style.background=i===2?'#2ECC8A':(i===0?'#2ECC8A':'#888');
+    });
+  }
+  if(id==='qd_med'){
+    const md=document.getElementById('meter-disp');
+    if(md){ let v=0;
+      const iv=setInterval(()=>{ v+=Math.floor(7432/25); if(v>=7432){v=7432;clearInterval(iv);} md.textContent=String(v).padStart(5,'0'); },80); }
+    document.getElementById('ebar').style.width='100%';
+    document.getElementById('ebarval').textContent=Math.round(G.kwp*1000*.87)+' W';
+    addScore(50);
+    setTimeout(()=>{ G.step=5; renderStepper(); updateInstr(); setTimeout(showSuccess,900); },500);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   WIRE DRAWING
+═══════════════════════════════════════════════════ */
+function drawWireSegment(id, color){
+  const svg=document.getElementById('wire-svg');
+  const scene=document.getElementById('scene');
+  const sr=scene.getBoundingClientRect();
+  svg.setAttribute('viewBox',`0 0 ${scene.offsetWidth} ${scene.offsetHeight}`);
+  svg.setAttribute('width',scene.offsetWidth);
+  svg.setAttribute('height',scene.offsetHeight);
+
+  if(id==='pv_inv'){
+    // Each panel → inverter
+    const iz=document.getElementById('inv-zone').getBoundingClientRect();
+    const ix=iz.left-sr.left+iz.width/2, iy=iz.top-sr.top+10;
+    document.querySelectorAll('.pslot.installed').forEach((slot,i)=>{
+      const br=slot.getBoundingClientRect();
+      const sx=br.left-sr.left+br.width/2, sy=br.top-sr.top+br.height;
+      animPath(svg,sx,sy,ix,iy,color,i*.08);
+    });
+  } else if(id==='inv_qd'){
+    const iz=document.getElementById('inv-zone').getBoundingClientRect();
+    const qz=document.getElementById('quadro-zone').getBoundingClientRect();
+    animPath(svg, iz.left-sr.left+iz.width/2, iz.top-sr.top+iz.height/2,
+                  qz.left-sr.left+qz.width/2, qz.top-sr.top+qz.height/2, color, 0, 3);
+  } else if(id==='qd_med'){
+    const qz=document.getElementById('quadro-zone').getBoundingClientRect();
+    const mz=document.getElementById('meter-zone').getBoundingClientRect();
+    animPath(svg, qz.left-sr.left+qz.width/2, qz.top-sr.top+qz.height/2,
+                  mz.left-sr.left+mz.width/2, mz.top-sr.top+mz.height/2, color, 0, 3);
+  }
+}
+
+function animPath(svg,x1,y1,x2,y2,color,delay=0,w=2){
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  const mx=(x1+x2)/2+(Math.random()*20-10), my=Math.min(y1,y2)-20;
+  path.setAttribute('d',`M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+  path.setAttribute('fill','none');
+  path.setAttribute('stroke',color);
+  path.setAttribute('stroke-width',w);
+  path.setAttribute('opacity','0.75');
+  svg.appendChild(path);
+  const len=path.getTotalLength();
+  path.style.strokeDasharray=len;
+  path.style.strokeDashoffset=len;
+  path.style.transition=`stroke-dashoffset 0.55s ease ${delay}s`;
+  setTimeout(()=>path.style.strokeDashoffset='0', 40);
+}
+
+function startWiring(){
+  // (kept for legacy; wiring is now via wire-panel tasks)
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
+function addScore(pts){ G.score+=Math.round(pts); document.getElementById('spts').textContent=G.score; }
+
+function updateKwp(){
+  document.getElementById('skwp').textContent=G.kwp.toFixed(2);
+  document.getElementById('ebar').style.width=(G.panels/G.maxPanels*55)+'%';
+  document.getElementById('ebarval').textContent=Math.round(G.kwp*1000*.87)+' W';
+}
+
+function animateSun(){
+  const n=G.panels/Math.max(G.maxPanels,1);
+  const g=26+n*44, g2=52+n*60;
+  document.getElementById('sun-core').style.boxShadow=`0 0 ${g}px ${g/4}px #FFD44066, 0 0 ${g2}px ${g2/4}px #FF980022`;
+  document.getElementById('sun-rays').style.opacity=.15+n*.85;
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+/* ═══════════════════════════════════════════════════
+   SUCCESS
+═══════════════════════════════════════════════════ */
+function showSuccess(){
+  const eco=Math.round(G.kwp*.55*30*.82*.72);
+  const co2=Math.round(G.kwp*1.2*30*.82);
+  document.getElementById('f-kwp').textContent=G.kwp.toFixed(2);
+  document.getElementById('f-pts').textContent=G.score;
+  document.getElementById('f-eco').textContent='R$'+eco;
+  document.getElementById('f-co2').textContent=co2+'kg';
+  document.getElementById('success').classList.add('on');
+}
+
+/* ═══════════════════════════════════════════════════
+   RESTART
+═══════════════════════════════════════════════════ */
+function restart(){
+  document.getElementById('success').classList.remove('on');
+  Object.assign(G,{step:0,chosenMod:null,panels:0,maxPanels:0,kwp:0,invAssembled:false,
+    asmDone:[false,false,false,false,false],quadroInstalled:false,
+    wiredTasks:{pv_inv:false,inv_qd:false,qd_med:false},score:0,selected:null});
+  _comps.panel.qty=0; _comps.inverter.qty=1; _comps.quadro.qty=1;
+
+  document.getElementById('spts').textContent='0';
+  document.getElementById('skwp').textContent='0.0';
+  document.getElementById('ebar').style.width='0%';
+  document.getElementById('ebarval').textContent='0 W';
+  document.getElementById('wire-svg').innerHTML='';
+  document.getElementById('hint').classList.remove('on');
+  document.getElementById('wire-panel').classList.remove('on');
+  document.getElementById('shelf').classList.remove('on');
+  document.getElementById('module-picker').style.display='';
+  document.getElementById('wire-tasks').innerHTML='';
+  document.getElementById('panel-zones').innerHTML='';
+
+  const iz=document.getElementById('inv-zone');
+  iz.classList.remove('installed','ready'); iz.innerHTML='🔧 Toque para<br>instalar<br>inversor';
+  const qz=document.getElementById('quadro-zone');
+  qz.classList.remove('installed','ready'); qz.innerHTML='⬛ Toque para<br>instalar<br>quadro';
+  const mz=document.getElementById('meter-zone');
+  mz.classList.remove('installed'); mz.innerHTML='🔌 Relógio<br>contador';
+
+  renderModulePicker();
+  renderStepper(); updateInstr(); animateSun();
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+renderModulePicker();
+renderStepper();
+updateInstr();
+animateSun();
+window.addEventListener('resize',()=>{ if(G.maxPanels>0) buildSlots(); });
+</script>
+</body>
+</html>
